@@ -47,7 +47,7 @@ const eventEmitter = new EventEmitter();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ['https://games.arifbingo.com', 'https://www.games.arifbingo.com'],
+    origin: ['https://powerbetbingo.vercel.app'],
     methods: ['GET', 'POST'],
   },
 });
@@ -63,7 +63,7 @@ io.on('connection', (socket) => {
 app.use(express.json());
 app.use(
   cors({
-    origin: ['https://games.arifbingo.com', 'https://www.games.arifbingo.com'],
+    origin: ['https://powerbetbingo.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
