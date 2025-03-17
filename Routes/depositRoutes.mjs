@@ -144,7 +144,7 @@ router.post('/subadmin', verifyToken, async (req, res) => {
 router.get('/history', verifyToken, async (req, res) => {
   try {
     const deposits = await DepositTransaction.find({
-      subadminId: req.user._id
+      subadminId: req.admin.id
     })
     .sort({ createdAt: -1 })
     .limit(50); // Limit to last 50 deposits
