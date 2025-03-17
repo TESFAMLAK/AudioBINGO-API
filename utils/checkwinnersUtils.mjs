@@ -180,4 +180,4 @@ function checkWinningCard(cardNumbers, calledNumbers, winningPattern) {
     return false;
   }
 
-  export {checkWinningCard};
+  export {checkWinningCard,checkOneDiagonal};
