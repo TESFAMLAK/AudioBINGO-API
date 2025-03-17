@@ -1455,4 +1455,21 @@ router.get('/list/:subadminId', verifyToken, async (req, res) => {
   });
   
 
+router.get('/:userId/role', verifyToken, async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.params.userId);
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+    res.json({ 
+      role: admin.role,
+      username: admin.username,
+      userId: admin._id
+    });
+  } catch (error) {
+    console.error('Error fetching admin role:', error);
+    res.status(500).json({ message: 'Error fetching admin role' });
+  }
+});
+
 export  default router;
