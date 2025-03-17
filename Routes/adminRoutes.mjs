@@ -10,6 +10,7 @@ import Admin from "../models/Admin.js";
 import Analytics from "../models/Analytics.js";
 import Transaction from "../models/Transaction.js";
 import BonusConfig from "../models/BonusConfig.js";
+import Bonus from "../models/Bonus.js";
 import OTP from "../models/OTP.js";
 import Game from "../models/Game.js";
 import Stats from "../models/Stats.js";
