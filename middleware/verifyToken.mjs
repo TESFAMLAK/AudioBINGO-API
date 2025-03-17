@@ -1,4 +1,4 @@
-
+import jwt from "jsonwebtoken";
 //  verifyToken middleware to include more information
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
