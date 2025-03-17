@@ -34,7 +34,7 @@ router.get('/payment-details', verifyToken, async (req, res) => {
 router.post('/admin', verifyToken, async (req, res) => {
   try {
     const { amount, paymentMethod, transactionNumber, serviceFee } = req.body;
-    const adminId = req.admin.id;
+    const adminId = req.admin._id;
 
     // Validate input
     if (!amount || !paymentMethod || !transactionNumber || !serviceFee) {
@@ -81,12 +81,21 @@ router.post('/admin', verifyToken, async (req, res) => {
       });
     }
 
-    // Get admin configuration
-    const admin = await Admin.findOne({ role: 'admin' });
-    if (!admin) {
+    // Get admin configuration for service fee percentage
+    const adminConfig = await Admin.findOne({ role: 'admin' });
+    if (!adminConfig) {
       return res.status(404).json({
         success: false,
         message: 'Admin configuration not found'
+      });
+    }
+
+    // Get the requesting admin's document
+    const requestingAdmin = await Admin.findById(adminId);
+    if (!requestingAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found'
       });
     }
 
@@ -95,7 +104,7 @@ router.post('/admin', verifyToken, async (req, res) => {
       subadminId: adminId,
       amount,
       serviceFee,
-      serviceFeePercentage: admin.serviceFeePercentage,
+      serviceFeePercentage: adminConfig.serviceFeePercentage,
       paymentMethod,
       serviceFeeTransactionId: bankTransaction._id,
       status: 'completed',
@@ -110,19 +119,20 @@ router.post('/admin', verifyToken, async (req, res) => {
       timestamp: Date.now()
     };
 
-    // Update admin wallet
-    admin.wallet += amount;
+    // Update requesting admin's wallet
+    requestingAdmin.wallet += amount;
 
     // Save all changes
     await Promise.all([
       depositTransaction.save(),
       bankTransaction.save(),
-      admin.save()
+      requestingAdmin.save()
     ]);
 
     res.json({
       success: true,
-      message: 'Deposit processed successfully'
+      message: 'Deposit processed successfully',
+      newWalletBalance: requestingAdmin.wallet
     });
   } catch (error) {
     console.error('Deposit processing error:', error);
@@ -137,7 +147,7 @@ router.post('/admin', verifyToken, async (req, res) => {
 router.post('/subadmin', verifyToken, async (req, res) => {
   try {
     const { amount, paymentMethod, transactionNumber, serviceFee } = req.body;
-    const subadminId = req.user._id;
+    const subadminId = req.admin._id;
 
     // Validate input
     if (!amount || !paymentMethod || !transactionNumber || !serviceFee) {
@@ -209,7 +219,7 @@ router.post('/subadmin', verifyToken, async (req, res) => {
     bankTransaction.status = 'used';
     bankTransaction.usedBy = {
       userId: subadminId,
-      username: req.user.username,
+      username: req.admin.username,
       timestamp: Date.now()
     };
 
@@ -247,7 +257,7 @@ router.post('/subadmin', verifyToken, async (req, res) => {
 router.get('/history', verifyToken, async (req, res) => {
   try {
     const deposits = await DepositTransaction.find({
-      subadminId: req.admin.id
+      subadminId: req.admin._id
     })
     .sort({ createdAt: -1 })
     .limit(50); // Limit to last 50 deposits
