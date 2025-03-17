@@ -81,12 +81,28 @@ router.post('/admin', verifyToken, async (req, res) => {
       });
     }
 
-    // Get admin configuration
-    const admin = await Admin.findOne({ role: 'admin' });
-    if (!admin) {
+    // Get admin configuration for service fee percentage
+    const adminConfig = await Admin.findOne({ role: 'admin' });
+    if (!adminConfig) {
       return res.status(404).json({
         success: false,
         message: 'Admin configuration not found'
+      });
+    }
+
+    // Get the requesting admin's document and verify role
+    const requestingAdmin = await Admin.findById(adminId);
+    if (!requestingAdmin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found'
+      });
+    }
+
+    if (requestingAdmin.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admin users can use this endpoint'
       });
     }
 
@@ -95,7 +111,7 @@ router.post('/admin', verifyToken, async (req, res) => {
       subadminId: adminId,
       amount,
       serviceFee,
-      serviceFeePercentage: admin.serviceFeePercentage,
+      serviceFeePercentage: adminConfig.serviceFeePercentage,
       paymentMethod,
       serviceFeeTransactionId: bankTransaction._id,
       status: 'completed',
@@ -110,19 +126,20 @@ router.post('/admin', verifyToken, async (req, res) => {
       timestamp: Date.now()
     };
 
-    // Update admin wallet
-    admin.wallet += amount;
+    // Update requesting admin's wallet
+    requestingAdmin.wallet += amount;
 
     // Save all changes
     await Promise.all([
       depositTransaction.save(),
       bankTransaction.save(),
-      admin.save()
+      requestingAdmin.save()
     ]);
 
     res.json({
       success: true,
-      message: 'Deposit processed successfully'
+      message: 'Deposit processed successfully',
+      newWalletBalance: requestingAdmin.wallet
     });
   } catch (error) {
     console.error('Deposit processing error:', error);
@@ -137,7 +154,7 @@ router.post('/admin', verifyToken, async (req, res) => {
 router.post('/subadmin', verifyToken, async (req, res) => {
   try {
     const { amount, paymentMethod, transactionNumber, serviceFee } = req.body;
-    const subadminId = req.user._id;
+    const subadminId = req.admin._id;
 
     // Validate input
     if (!amount || !paymentMethod || !transactionNumber || !serviceFee) {
@@ -193,6 +210,22 @@ router.post('/subadmin', verifyToken, async (req, res) => {
       });
     }
 
+    // Get and verify subadmin
+    const subadmin = await Admin.findById(subadminId);
+    if (!subadmin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subadmin not found'
+      });
+    }
+
+    if (subadmin.role !== 'subadmin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only subadmin users can use this endpoint'
+      });
+    }
+
     // Create deposit transaction
     const depositTransaction = new DepositTransaction({
       subadminId,
@@ -209,18 +242,11 @@ router.post('/subadmin', verifyToken, async (req, res) => {
     bankTransaction.status = 'used';
     bankTransaction.usedBy = {
       userId: subadminId,
-      username: req.user.username,
+      username: req.admin.username,
       timestamp: Date.now()
     };
 
     // Update subadmin wallet
-    const subadmin = await Admin.findById(subadminId);
-    if (!subadmin) {
-      return res.status(404).json({
-        success: false,
-        message: 'Subadmin not found'
-      });
-    }
     subadmin.wallet += amount;
 
     // Save all changes
@@ -232,7 +258,8 @@ router.post('/subadmin', verifyToken, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Deposit processed successfully'
+      message: 'Deposit processed successfully',
+      newWalletBalance: subadmin.wallet
     });
   } catch (error) {
     console.error('Deposit processing error:', error);
