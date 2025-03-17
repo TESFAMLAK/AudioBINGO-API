@@ -34,7 +34,7 @@ router.get('/payment-details', verifyToken, async (req, res) => {
 router.post('/admin', verifyToken, async (req, res) => {
   try {
     const { amount, paymentMethod, transactionNumber, serviceFee } = req.body;
-    const adminId = req.admin._id;
+    const adminId = req.admin.id;
 
     // Validate input
     if (!amount || !paymentMethod || !transactionNumber || !serviceFee) {
@@ -137,7 +137,7 @@ router.post('/admin', verifyToken, async (req, res) => {
 router.post('/subadmin', verifyToken, async (req, res) => {
   try {
     const { amount, paymentMethod, transactionNumber, serviceFee } = req.body;
-    const subadminId = req.admin._id;
+    const subadminId = req.user._id;
 
     // Validate input
     if (!amount || !paymentMethod || !transactionNumber || !serviceFee) {
@@ -209,7 +209,7 @@ router.post('/subadmin', verifyToken, async (req, res) => {
     bankTransaction.status = 'used';
     bankTransaction.usedBy = {
       userId: subadminId,
-      username: req.admin.username,
+      username: req.user.username,
       timestamp: Date.now()
     };
 
@@ -247,7 +247,7 @@ router.post('/subadmin', verifyToken, async (req, res) => {
 router.get('/history', verifyToken, async (req, res) => {
   try {
     const deposits = await DepositTransaction.find({
-      subadminId: req.admin._id
+      subadminId: req.admin.id
     })
     .sort({ createdAt: -1 })
     .limit(50); // Limit to last 50 deposits
