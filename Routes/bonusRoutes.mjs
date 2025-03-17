@@ -43,7 +43,7 @@ router.post('/set-passcode', verifyToken, async (req, res) => {
     }
   });
   
-  app.post('/verify-passcode', verifyToken, async (req, res) => {
+  router.post('/verify-passcode', verifyToken, async (req, res) => {
     try {
       const { passcode } = req.body;
       const admin = await Admin.findById(req.admin.id);
