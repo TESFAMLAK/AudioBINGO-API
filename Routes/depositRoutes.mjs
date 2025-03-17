@@ -30,7 +30,110 @@ router.get('/payment-details', verifyToken, async (req, res) => {
   }
 });
 
-// Process deposit request
+// Process admin deposit request
+router.post('/admin', verifyToken, async (req, res) => {
+  try {
+    const { amount, paymentMethod, transactionNumber, serviceFee } = req.body;
+    const adminId = req.admin.id;
+
+    // Validate input
+    if (!amount || !paymentMethod || !transactionNumber || !serviceFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+
+    // Validate amount
+    if (amount < 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Minimum deposit amount is 1000'
+      });
+    }
+
+    // Validate payment method
+    if (!['CBE', 'TELEBIRR'].includes(paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment method'
+      });
+    }
+
+    // Validate transaction
+    const bankTransaction = await BankTransaction.findOne({
+      transactionInfo: transactionNumber,
+      status: 'available'
+    });
+
+    if (!bankTransaction) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or already used transaction number'
+      });
+    }
+
+    // Verify service fee amount
+    if (bankTransaction.amount !== serviceFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Service fee amount does not match'
+      });
+    }
+
+    // Get admin configuration
+    const admin = await Admin.findOne({ role: 'admin' });
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin configuration not found'
+      });
+    }
+
+    // Create deposit transaction
+    const depositTransaction = new DepositTransaction({
+      subadminId: adminId,
+      amount,
+      serviceFee,
+      serviceFeePercentage: admin.serviceFeePercentage,
+      paymentMethod,
+      serviceFeeTransactionId: bankTransaction._id,
+      status: 'completed',
+      completedAt: new Date()
+    });
+
+    // Update bank transaction status
+    bankTransaction.status = 'used';
+    bankTransaction.usedBy = {
+      userId: adminId,
+      username: req.admin.username,
+      timestamp: Date.now()
+    };
+
+    // Update admin wallet
+    admin.wallet += amount;
+
+    // Save all changes
+    await Promise.all([
+      depositTransaction.save(),
+      bankTransaction.save(),
+      admin.save()
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Deposit processed successfully'
+    });
+  } catch (error) {
+    console.error('Deposit processing error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process deposit'
+    });
+  }
+});
+
+// Process subadmin deposit request
 router.post('/subadmin', verifyToken, async (req, res) => {
   try {
     const { amount, paymentMethod, transactionNumber, serviceFee } = req.body;
