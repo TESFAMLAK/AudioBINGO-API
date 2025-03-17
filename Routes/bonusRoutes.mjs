@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import Admin from "../models/Admin";
-import PatternBonusConfig from "../models/PatternBonusConfig";
+import Admin from "../models/Admin.js";
+import PatternBonusConfig from "../models/PatternBonusConfig.js";
 import { verifyToken } from "../middleware/verifyToken.mjs";
 const router  = express.Router();
 

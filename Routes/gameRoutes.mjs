@@ -1,8 +1,8 @@
 import express from "express";
-import Game from "../models/Game";
-import Admin from "../models/Admin";
-import Bonus from "../models/Bonus";
-import BonusConfig from "../models/BonusConfig";
+import Game from "../models/Game.js";
+import Admin from "../models/Admin.js";
+import Bonus from "../models/Bonus.js";
+import BonusConfig from "../models/BonusConfig.js";
 import bingoCards from "../constant/bingoCards.mjs";
 import { verifyToken } from "../middleware/verifyToken.mjs";
 import { calculatePayout } from "../utils/calculatePayoutUtils.mjs";

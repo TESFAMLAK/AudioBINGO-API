@@ -1,6 +1,6 @@
 import express from "express";
-import Admin from "../models/Admin";
-import Transaction from "../models/Transaction";
+import Admin from "../models/Admin.js";
+import Transaction from "../models/Transaction.js";
 import { verifyToken } from "../middleware/verifyToken.mjs";
 const router  = express.Router();
 
