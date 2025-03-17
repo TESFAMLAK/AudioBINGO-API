@@ -204,12 +204,6 @@ router.post('/signup/protected/hope',
         createdBy: createdBy || null,
       });
       await newAdmin.save();
-      await addNotification(
-        newAdmin._id,
-        `New admin registered: ${username}`,
-        'info'
-      );
-  
       res
         .status(201)
         .json({ message: 'User registered successfully', role: newAdmin.role });
@@ -996,7 +990,6 @@ router.get('/profits', verifyToken, async (req, res) => {
           .filter((t) => t.type === 'CREDIT')
           .reduce((sum, t) => sum + t.amount, 0),
   
-        // Add this calculation for total deposits
         totalDeposits: analytics
           .filter((t) => t.type === 'PAID')
           .reduce((sum, t) => sum + t.amount, 0),
