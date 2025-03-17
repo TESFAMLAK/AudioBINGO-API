@@ -37,7 +37,7 @@ function haltOnTimedout(req, res, next) {
 }
 
 
-const io = new Server(server, {
+export const io = new Server(server, {
   cors: {
     origin: ['https://powerbetbingo.vercel.app', 'https://admin.arifbingo.com'],
     methods: ['GET', 'POST'],
@@ -51,14 +51,14 @@ io.on('connection', (socket) => {
   });
 });
 
-  app.use(express.json());
-  app.use(
-    cors({
-      origin: ['https://powerbetbingo.vercel.app', 'https://admin.arifbingo.com'],
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    })
-  );
+      app.use(express.json());
+      app.use(
+        cors({
+          origin: ['https://powerbetbingo.vercel.app', 'https://admin.arifbingo.com'],
+          methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+          allowedHeaders: ['Content-Type', 'Authorization'],
+        })
+      );
 
     app.use(
       helmet({
