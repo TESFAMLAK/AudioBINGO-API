@@ -145,7 +145,7 @@ router.get('/payment-config', verifyToken, async (req, res) => {
 router.put('/payment-config', verifyToken, async (req, res) => {
   try {
     const { serviceFeePercentage, paymentDetails } = req.body;
-    const admin = await Admin.findOne({ role: 'admin' });
+    const admin = await Admin.findOne({ role: { $in: ['admin', 'subadmin'] } });
     
     if (!admin) {
       return res.status(404).json({ 

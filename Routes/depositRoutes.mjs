@@ -45,10 +45,10 @@ router.post('/admin', verifyToken, async (req, res) => {
     }
 
     // Validate amount
-    if (amount < 1000) {
+    if (amount < 2000) {
       return res.status(400).json({
         success: false,
-        message: 'Minimum deposit amount is 1000'
+        message: 'Minimum deposit amount is 2000'
       });
     }
 
@@ -154,7 +154,7 @@ router.post('/admin', verifyToken, async (req, res) => {
 router.post('/subadmin', verifyToken, async (req, res) => {
   try {
     const { amount, paymentMethod, transactionNumber, serviceFee } = req.body;
-    const subadminId = req.admin._id;
+    const subadminId = req.admin.id;
 
     // Validate input
     if (!amount || !paymentMethod || !transactionNumber || !serviceFee) {
@@ -165,10 +165,10 @@ router.post('/subadmin', verifyToken, async (req, res) => {
     }
 
     // Validate amount
-    if (amount < 1000) {
+    if (amount < 2000) {
       return res.status(400).json({
         success: false,
-        message: 'Minimum deposit amount is 1000'
+        message: 'Minimum deposit amount is 2000'
       });
     }
 
