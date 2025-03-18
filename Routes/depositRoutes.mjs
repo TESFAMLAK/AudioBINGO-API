@@ -8,11 +8,11 @@ const router = express.Router();
 // Get payment details for deposits
 router.get('/payment-details', verifyToken, async (req, res) => {
   try {
-    const admin = await Admin.findOne({ role: { $in: ['admin', 'subadmin'] } });
+    const admin = await Admin.findById(req.admin.id);
     if (!admin) {
       return res.status(404).json({ 
         success: false, 
-        message: 'Payment details not found' 
+        message: 'Admin not found' 
       });
     }
 
@@ -82,7 +82,7 @@ router.post('/admin', verifyToken, async (req, res) => {
     }
 
     // Get admin configuration for service fee percentage
-    const adminConfig = await Admin.findOne({ role: 'admin' });
+    const adminConfig = await Admin.findById(adminId);
     if (!adminConfig) {
       return res.status(404).json({
         success: false,
@@ -201,8 +201,8 @@ router.post('/subadmin', verifyToken, async (req, res) => {
       });
     }
 
-    // Get admin configuration
-    const admin = await Admin.findOne({ role: 'admin' });
+    // Get sub admin configuration using subadminId
+    const admin = await Admin.findById(subadminId);
     if (!admin) {
       return res.status(404).json({
         success: false,

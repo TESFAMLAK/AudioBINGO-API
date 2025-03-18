@@ -119,9 +119,9 @@ router.get('/test-connection', (req, res) => {
   });
 
 // Get payment configuration
-router.get('/payment-config', verifyToken, async (req, res) => {
+router.get('/payment-config/:adminId', verifyToken, async (req, res) => {
   try {
-    const admin = await Admin.findOne({ role: 'admin' });
+    const admin = await Admin.findById(req.params.adminId);
     if (!admin) {
       return res.status(404).json({ 
         success: false, 
@@ -142,10 +142,10 @@ router.get('/payment-config', verifyToken, async (req, res) => {
 });
 
 // Update payment configuration
-router.put('/payment-config', verifyToken, async (req, res) => {
+router.put('/payment-config/:adminId', verifyToken, async (req, res) => {
   try {
     const { serviceFeePercentage, paymentDetails } = req.body;
-    const admin = await Admin.findOne({ role: { $in: ['admin', 'subadmin'] } });
+    const admin = await Admin.findById(req.params.adminId);
     
     if (!admin) {
       return res.status(404).json({ 
