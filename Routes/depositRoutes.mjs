@@ -8,7 +8,7 @@ const router = express.Router();
 // Get payment details for deposits
 router.get('/payment-details', verifyToken, async (req, res) => {
   try {
-    const admin = await Admin.findOne({ role: 'admin' });
+    const admin = await Admin.findOne({ role: { $in: ['admin', 'subadmin'] } });
     if (!admin) {
       return res.status(404).json({ 
         success: false, 

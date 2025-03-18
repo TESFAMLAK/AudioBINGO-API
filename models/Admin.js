@@ -60,7 +60,7 @@ const AdminSchema = new mongoose.Schema({
   // New fields for deposit feature
   serviceFeePercentage: {
     type: Number,
-    default: 50, // 50% default service fee
+    default: 35, // 35% default service fee
     min: 0,
     max: 100
   },
