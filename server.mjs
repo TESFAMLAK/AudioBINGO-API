@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 import Admin from "./models/Admin.js";
+import Game from "./models/Game.js";
 import helmet from "helmet";
 import { Server } from "socket.io";
 import http from "http";
@@ -125,6 +126,56 @@ io.on('connection', (socket) => {
         res.status(500).json({ status: "ERROR", message: "Server is not healthy" });
       }
     });
+
+// Run this task daily at midnight
+cron.schedule("0 0 */3 * *", async () => {
+  try {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+    // Get all admins
+    const admins = await Admin.find({});
+
+    for (const admin of admins) {
+      // Count games in the last 3 days
+      const recentGamesCount = await Game.countDocuments({
+        adminId: admin._id,
+        createdAt: { $gte: threeDaysAgo },
+      });
+
+      if (recentGamesCount >= 500) {
+        // If 500 or more games, delete half of the oldest games
+        const totalGames = await Game.countDocuments({ adminId: admin._id });
+        const gamesToDelete = Math.floor(totalGames / 2);
+
+        const oldestGames = await Game.find({ adminId: admin._id })
+          .sort({ createdAt: 1 })
+          .limit(gamesToDelete);
+
+        const oldestGameIds = oldestGames.map((game) => game._id);
+
+        await Game.deleteMany({ _id: { $in: oldestGameIds } });
+
+        console.log(
+          `Deleted ${gamesToDelete} old games for admin ${admin.username}`
+        );
+      } else {
+        // If less than 500 games, delete games older than 3 days
+        const result = await Game.deleteMany({
+          adminId: admin._id,
+          createdAt: { $lt: threeDaysAgo },
+        });
+
+        console.log(
+          `Deleted ${result.deletedCount} old games for admin ${admin.username}`
+        );
+      }
+    }
+
+    console.log("Game cleanup completed");
+  } catch (error) {
+    console.error("Error during game cleanup:", error);
+  }
+});
 
 // Scheduled task to deactivate expired unlimited wallets
 cron.schedule('0 0 * * *', async () => {
