@@ -119,7 +119,7 @@ io.on('connection', (socket) => {
     app.use('api/bonus', bounsRoutes);
     app.use('/api/subadmin', subAdminRoutes)
 
-    app.get("/api/server/health", (req, res) => {
+    app.get("/api/health", (req, res) => {
       try {
         res.status(200).json({ status: "OK", message: "Server is healthy" });
       } catch (error) {
